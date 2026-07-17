@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Miranda Clinic Queue Control</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/x-icon" href="logo only.ico">
+</head>
+<body>
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-card">
+      <h2>Access required</h2>
+      <p>Enter your admin credentials to continue.</p>
+      <form id="loginForm">
+        <label for="usernameInput">Username</label>
+        <input id="usernameInput" type="text" autocomplete="username" required />
+        <label for="passwordInput">Password</label>
+        <input id="passwordInput" type="password" autocomplete="current-password" required />
+        <button type="submit">Login</button>
+        <p class="login-error" id="loginError"></p>
+      </form>
+    </div>
+  </div>
+
+  <div class="app-content" id="appContent">
+    <header class="topbar">
+      <div class="logo">
+        <img src="logo only.png" class="logo-image" />
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section class="panel">
+        <h1>Admin Control Panel</h1>
+        <p>Update queue numbers for each room</p>
+      </section>
+
+      <section class="rooms-grid">
+        <article class="room-card" data-room="room1">
+          <h2>Room 1</h2>
+          <label>Current Number</label>
+          <input type="text" class="current-number" readonly />
+          <label>Doctor</label>
+          <input type="text" class="doctor-name" readonly />
+          <div class="button-row">
+            <button class="decrement">-1</button>
+            <button class="increment">+1</button>
+          </div>
+          <div class="override-row">
+            <input type="number" class="custom-number" min="0" placeholder="Enter new number" />
+            <button class="set-number">Override</button>
+          </div>
+        </article>
+
+        <article class="room-card" data-room="room2">
+          <h2>Room 2</h2>
+          <label>Current Number</label>
+          <input type="text" class="current-number" readonly />
+          <label>Doctor</label>
+          <input type="text" class="doctor-name" readonly />
+          <div class="button-row">
+            <button class="decrement">-1</button>
+            <button class="increment">+1</button>
+          </div>
+          <div class="override-row">
+            <input type="number" class="custom-number" min="0" placeholder="Enter new number" />
+            <button class="set-number">Override</button>
+          </div>
+        </article>
+      </section>
+      <div class="status-banner" id="statusBanner">Loading queue data...</div>
+    </main>
+  </div>
+
+  <a class="site-footer-link" href="https://solcredio.com" target="_blank" rel="noopener noreferrer">Miranda Clinics</a>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
