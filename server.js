@@ -1,10 +1,27 @@
 const express = require('express');
+const fs = require('fs');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const API_BASE = 'https://mc-api.solcredio.net/api/queue';
-const roomState = {};
+const STATE_FILE = path.join(__dirname, 'queue-state.json');
+
+function loadRoomState() {
+  try {
+    const fileContents = fs.readFileSync(STATE_FILE, 'utf8');
+    const parsed = JSON.parse(fileContents);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function saveRoomState(state) {
+  fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+}
+
+const roomState = loadRoomState();
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
@@ -88,6 +105,7 @@ app.put('/api/queue/:room', async (req, res) => {
     });
 
     roomState[roomKey] = nextRoom;
+    saveRoomState(roomState);
 
     try {
       await fetch(`${API_BASE}/${roomKey}`, {
