@@ -92,8 +92,11 @@ function populateRooms(data) {
     card.querySelector('.custom-number').value = '';
 
     const toggleButton = card.querySelector('.doctor-toggle');
+    const toggleLabel = toggleButton.querySelector('.doctor-toggle__label');
     const doctorIn = Boolean(roomData.doctorIn);
-    toggleButton.textContent = doctorIn ? 'Doctor In' : 'Doctor Out';
+    if (toggleLabel) {
+      toggleLabel.textContent = doctorIn ? 'Doctor In' : 'Doctor Out';
+    }
     toggleButton.classList.toggle('is-active', doctorIn);
     toggleButton.setAttribute('aria-pressed', String(doctorIn));
   });
@@ -103,14 +106,16 @@ async function updateRoom(roomKey, updates, card) {
   const buttons = Array.from(card.querySelectorAll('button'));
   buttons.forEach((btn) => (btn.disabled = true));
   try {
-    const currentNumber = Number(card.querySelector('.current-number').value || 0);
+    const currentNumberValue = card.querySelector('.current-number').value;
+    const currentNumberText = currentNumberValue && currentNumberValue !== '--' ? currentNumberValue : '000';
     const payload = {
       ...updates,
-      number: updates.number ?? currentNumber,
+      number: updates.number === undefined ? currentNumberText : formatNumber(updates.number),
+      doctor: card.querySelector('.doctor-name').value || '',
     };
 
-    if (payload.number < 0) {
-      payload.number = 0;
+    if (payload.number === '--') {
+      payload.number = '000';
     }
 
     const response = await fetch(`${API_BASE}/${roomKey}`, {
@@ -133,12 +138,15 @@ async function updateRoom(roomKey, updates, card) {
     card.querySelector('.doctor-name').value = roomResult.doctor || '';
 
     const toggleButton = card.querySelector('.doctor-toggle');
+    const toggleLabel = toggleButton.querySelector('.doctor-toggle__label');
     const doctorIn = Boolean(roomResult.doctorIn);
-    toggleButton.textContent = doctorIn ? 'Doctor In' : 'Doctor Out';
+    if (toggleLabel) {
+      toggleLabel.textContent = doctorIn ? 'Doctor In' : 'Doctor Out';
+    }
     toggleButton.classList.toggle('is-active', doctorIn);
     toggleButton.setAttribute('aria-pressed', String(doctorIn));
 
-    showStatus(`Updated ${roomResult.room} (${doctorIn ? 'doctor in' : 'doctor out'}).`);
+    showStatus(`Requested ${roomResult.room} ${doctorIn ? 'doctor in' : 'doctor out'} update.`);
   } catch (error) {
     console.error(error);
     showStatus(`Unable to update ${roomKey}. Try again.`, 'error');
@@ -178,6 +186,14 @@ roomCards.forEach((card) => {
   doctorToggleButton.addEventListener('click', async () => {
     const currentState = doctorToggleButton.getAttribute('aria-pressed') === 'true';
     const nextState = !currentState;
+
+    const toggleLabel = doctorToggleButton.querySelector('.doctor-toggle__label');
+    if (toggleLabel) {
+      toggleLabel.textContent = nextState ? 'Doctor In' : 'Doctor Out';
+    }
+    doctorToggleButton.classList.toggle('is-active', nextState);
+    doctorToggleButton.setAttribute('aria-pressed', String(nextState));
+
     await updateRoom(roomKey, { doctorIn: nextState }, card);
   });
 });
