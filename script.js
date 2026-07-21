@@ -80,6 +80,20 @@ async function fetchQueue() {
   }
 }
 
+function syncRoomCardUI(card, roomResult) {
+  card.querySelector('.current-number').value = formatNumber(roomResult.number);
+  card.querySelector('.doctor-name').value = roomResult.doctor || '';
+
+  const toggleButton = card.querySelector('.doctor-toggle');
+  const toggleLabel = toggleButton.querySelector('.doctor-toggle__label');
+  const doctorIn = Boolean(roomResult.doctorIn);
+  if (toggleLabel) {
+    toggleLabel.textContent = doctorIn ? 'Doctor In' : 'Doctor Out';
+  }
+  toggleButton.classList.toggle('is-active', doctorIn);
+  toggleButton.setAttribute('aria-pressed', String(doctorIn));
+}
+
 function populateRooms(data) {
   roomCards.forEach((card) => {
     const roomKey = card.dataset.room;
@@ -91,14 +105,7 @@ function populateRooms(data) {
     card.querySelector('.doctor-name').value = roomData.doctor || '';
     card.querySelector('.custom-number').value = '';
 
-    const toggleButton = card.querySelector('.doctor-toggle');
-    const toggleLabel = toggleButton.querySelector('.doctor-toggle__label');
-    const doctorIn = Boolean(roomData.doctorIn);
-    if (toggleLabel) {
-      toggleLabel.textContent = doctorIn ? 'Doctor In' : 'Doctor Out';
-    }
-    toggleButton.classList.toggle('is-active', doctorIn);
-    toggleButton.setAttribute('aria-pressed', String(doctorIn));
+    syncRoomCardUI(card, roomData);
   });
 }
 
@@ -134,22 +141,45 @@ async function updateRoom(roomKey, updates, card) {
       throw new Error('Unexpected API response');
     }
 
-    card.querySelector('.current-number').value = formatNumber(roomResult.number);
-    card.querySelector('.doctor-name').value = roomResult.doctor || '';
+    syncRoomCardUI(card, roomResult);
 
-    const toggleButton = card.querySelector('.doctor-toggle');
-    const toggleLabel = toggleButton.querySelector('.doctor-toggle__label');
     const doctorIn = Boolean(roomResult.doctorIn);
-    if (toggleLabel) {
-      toggleLabel.textContent = doctorIn ? 'Doctor In' : 'Doctor Out';
-    }
-    toggleButton.classList.toggle('is-active', doctorIn);
-    toggleButton.setAttribute('aria-pressed', String(doctorIn));
-
     showStatus(`Requested ${roomResult.room} ${doctorIn ? 'doctor in' : 'doctor out'} update.`);
   } catch (error) {
     console.error(error);
     showStatus(`Unable to update ${roomKey}. Try again.`, 'error');
+  } finally {
+    buttons.forEach((btn) => (btn.disabled = false));
+  }
+}
+
+async function updateDoctorStatus(roomKey, doctorInValue, card) {
+  const buttons = Array.from(card.querySelectorAll('button'));
+  buttons.forEach((btn) => (btn.disabled = true));
+  try {
+    const response = await fetch(`${API_BASE}/${roomKey}/doctor-status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ doctorIn: doctorInValue }),
+    });
+    if (!response.ok) {
+      throw new Error(`Doctor status update failed: ${response.status}`);
+    }
+    const result = await response.json();
+    const roomResult = result.room || result;
+    if (!roomResult) {
+      throw new Error('Unexpected API response');
+    }
+
+    syncRoomCardUI(card, roomResult);
+
+    const doctorIn = Boolean(roomResult.doctorIn);
+    showStatus(`Requested ${roomResult.room} ${doctorIn ? 'doctor in' : 'doctor out'} update.`);
+  } catch (error) {
+    console.error(error);
+    showStatus(`Unable to update ${roomKey} doctor status. Try again.`, 'error');
   } finally {
     buttons.forEach((btn) => (btn.disabled = false));
   }
@@ -185,17 +215,9 @@ roomCards.forEach((card) => {
 
   doctorToggleButton.addEventListener('click', async () => {
     const currentState = doctorToggleButton.getAttribute('aria-pressed') === 'true';
-    const nextState = !currentState;
-    const doctorInValue = nextState ? true : false;
+    const doctorInValue = !currentState;
 
-    const toggleLabel = doctorToggleButton.querySelector('.doctor-toggle__label');
-    if (toggleLabel) {
-      toggleLabel.textContent = doctorInValue ? 'Doctor In' : 'Doctor Out';
-    }
-    doctorToggleButton.classList.toggle('is-active', doctorInValue);
-    doctorToggleButton.setAttribute('aria-pressed', String(doctorInValue));
-
-    await updateRoom(roomKey, { doctorIn: doctorInValue }, card);
+    await updateDoctorStatus(roomKey, doctorInValue, card);
   });
 });
 
