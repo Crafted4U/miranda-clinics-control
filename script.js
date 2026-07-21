@@ -186,15 +186,16 @@ roomCards.forEach((card) => {
   doctorToggleButton.addEventListener('click', async () => {
     const currentState = doctorToggleButton.getAttribute('aria-pressed') === 'true';
     const nextState = !currentState;
+    const doctorInValue = nextState ? true : false;
 
     const toggleLabel = doctorToggleButton.querySelector('.doctor-toggle__label');
     if (toggleLabel) {
-      toggleLabel.textContent = nextState ? 'Doctor In' : 'Doctor Out';
+      toggleLabel.textContent = doctorInValue ? 'Doctor In' : 'Doctor Out';
     }
-    doctorToggleButton.classList.toggle('is-active', nextState);
-    doctorToggleButton.setAttribute('aria-pressed', String(nextState));
+    doctorToggleButton.classList.toggle('is-active', doctorInValue);
+    doctorToggleButton.setAttribute('aria-pressed', String(doctorInValue));
 
-    await updateRoom(roomKey, { doctorIn: nextState }, card);
+    await updateRoom(roomKey, { doctorIn: doctorInValue }, card);
   });
 });
 
