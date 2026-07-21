@@ -290,13 +290,41 @@ header{
 .doctor-toggle {
   margin-top: 0;
   width: auto;
-  min-width: 112px;
-  padding: 0.7rem 0.9rem;
-  background: #dc2626;
+  min-width: 128px;
+  padding: 0.72rem 1rem;
+  border-radius: 999px;
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 2px solid #fca5a5;
+  box-shadow: 0 6px 16px rgba(185, 28, 28, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.doctor-toggle::before {
+  content: "";
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6);
+}
+
+.doctor-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
 }
 
 .doctor-toggle.is-active {
-  background: #16a34a;
+  background: #ecfdf3;
+  color: #15803d;
+  border-color: #86efac;
+  box-shadow: 0 8px 18px rgba(22, 163, 74, 0.16);
 }
 
 .button-row {
