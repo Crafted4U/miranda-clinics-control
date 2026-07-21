@@ -124,6 +124,43 @@ app.put('/api/queue/:room', async (req, res) => {
   }
 });
 
+app.put('/api/queue/:room/doctor-status', async (req, res) => {
+  try {
+    const roomKey = req.params.room;
+    const currentState = await getQueueState();
+    const currentRoom = currentState[roomKey] || {
+      room: roomKey,
+      doctor: '',
+      number: '000',
+      doctorIn: true,
+    };
+
+    const doctorIn = req.body && req.body.doctorIn !== undefined ? Boolean(req.body.doctorIn) : currentRoom.doctorIn;
+    const nextRoom = normalizeRoom(roomKey, {
+      ...currentRoom,
+      doctorIn,
+    });
+
+    roomState[roomKey] = nextRoom;
+    saveRoomState(roomState);
+
+    try {
+      await fetch(`${API_BASE}/${roomKey}/doctor-status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ doctorIn }),
+      });
+    } catch (upstreamError) {
+      console.warn('Upstream doctor status update failed, using local state instead.', upstreamError.message);
+    }
+
+    res.json({ success: true, room: nextRoom });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to update doctor status' });
+  }
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
